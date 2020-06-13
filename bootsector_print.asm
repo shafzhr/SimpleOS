@@ -1,25 +1,33 @@
 print:
     push bp
     mov bp, sp
+    
+    push ax
+    push bx
 
     mov bx, [bp+4]
     mov ah, 0x0E
 
-    lprint:
+    .lprint:
         mov al, [bx]
         cmp al, 0
-        jz done ; null terminated string
+        jz .done ; null terminated string
 
         int 10h
         
         inc bx
-        jmp lprint
+        jmp .lprint
     
-    done:
-        pop bp
+    .done:
+        pop bx
+        pop ax    
+    pop bp
     ret 4
 
 new_line:
+    push ax
+    push bx
+
     xor bh, bh
     mov ah, 0x0E
     
@@ -28,4 +36,6 @@ new_line:
     mov al, 0x0A
     int 10h
 
+    pop bx
+    pop ax
     ret
