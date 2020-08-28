@@ -54,5 +54,5 @@ dw 0xaa55 ; Tells the bios that it is bootable. 55aa in little endian(x86).
 second_sector db "HELLO!", 0
 times 512-($-second_sector) db 0 ; 0 padding
 
-third_sector db "Welcome to my OS.", 0
+third_sector db "Welcome to my OS.", 0xd, 0xa, "I'm Shachaf the king :P", 0
 times 512-($-third_sector) db 0 ; 0 padding
