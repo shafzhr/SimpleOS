@@ -29,22 +29,17 @@ push 0x9200
 call print
 call new_line
 
+call switch_to_protected_mode
 
-
-
-; push hello_world
-; call print
-; call new_line
-
-; push welcome
-; call print
-
-; call new_line
-
-jmp $
+jmp $ ; will not be executed
 
 %include "bootsector_print.asm"
 %include "disk_loader.asm"
+%include "gdt/gdt.asm"
+%include "protected_mode/switchPM.asm"
+%include "protected_mode/mainPM.asm"
+%include "protected_mode/printPM.asm"
+
 
 ERR db "ERR", 0
 
@@ -54,5 +49,5 @@ dw 0xaa55 ; Tells the bios that it is bootable. 55aa in little endian(x86).
 second_sector db "HELLO!", 0
 times 512-($-second_sector) db 0 ; 0 padding
 
-third_sector db "Welcome to my OS.", 0
+third_sector db "Welcome to my OS.", 0xd, 0xa, "I'm Shachaf the king :P", 0
 times 512-($-third_sector) db 0 ; 0 padding
