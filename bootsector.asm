@@ -29,22 +29,17 @@ push 0x9200
 call print
 call new_line
 
+call switch_to_protected_mode
 
-
-
-; push hello_world
-; call print
-; call new_line
-
-; push welcome
-; call print
-
-; call new_line
-
-jmp $
+jmp $ ; will not be executed
 
 %include "bootsector_print.asm"
 %include "disk_loader.asm"
+%include "gdt/gdt.asm"
+%include "protected_mode/switchPM.asm"
+%include "protected_mode/mainPM.asm"
+%include "protected_mode/printPM.asm"
+
 
 ERR db "ERR", 0
 
