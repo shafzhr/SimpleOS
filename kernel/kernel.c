@@ -1,5 +1,5 @@
-void main()
+void kernel_main()
 {
-    char* video_mem = (char*) 0xB8000;
-    *video_mem = 'A';
+    short* video_mem = (short*) 0xB8000;
+    video_mem[1] = 0x0F << 8 | 'H';
 }
