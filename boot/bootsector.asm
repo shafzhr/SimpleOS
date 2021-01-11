@@ -33,12 +33,12 @@ call switch_to_protected_mode
 
 jmp $ ; will not be executed
 
-%include "bootsector_print.asm"
-%include "disk_loader.asm"
-%include "gdt/gdt.asm"
-%include "protected_mode/switchPM.asm"
-%include "protected_mode/mainPM.asm"
-%include "protected_mode/printPM.asm"
+%include "boot/bootsector_print.asm"
+%include "boot/disk_loader.asm"
+%include "boot/gdt/gdt.asm"
+%include "boot/protected_mode/switchPM.asm"
+%include "boot/protected_mode/mainPM.asm"
+%include "boot/protected_mode/printPM.asm"
 
 
 ERR db "ERR", 0
