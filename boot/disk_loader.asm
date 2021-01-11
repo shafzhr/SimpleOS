@@ -40,7 +40,8 @@ load_sectors:
     
     .done:
         pop bp
-    ret 6
+
+    ret 8
 
 
 read_error db "There was an error loading the sectors", 0

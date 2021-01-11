@@ -22,7 +22,7 @@ print:
         pop bx
         pop ax    
     pop bp
-    ret 4
+    ret 2
 
 new_line:
     push ax
