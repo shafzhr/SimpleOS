@@ -1,22 +1,22 @@
-all: run
+SRCFILES = $(wildcard kernel/*.c drivers/*.c)
+HDRFILES = $(wildcard kernel/*.h drivers/*.h)
 
-bootsector.bin: boot/bootsector.asm
-	nasm -f bin $< -o $@
+OBJFILES = ${SRCFILES:.c=.o}
 
-kernel.o: kernel/kernel.c
-	i686-elf-gcc -g -ffreestanding -c $< -o $@
+WARNINGS = -Wall
+CFLAGS = -g -masm=intel ${WARNINGS}
 
-enter_kernel.o: boot/enter_kernel.asm
-	nasm -f elf $< -o $@
+CC = i686-elf-gcc
 
-kernel.bin: kernel.o enter_kernel.o
+
+os.img: boot/bootsector.bin kernel.bin
+	cat $^ > $@
+
+kernel.bin: boot/enter_kernel.o ${OBJFILES}
 	i686-elf-ld -o $@ -Ttext=0x1000 $^ --oformat binary
 
-kernel.elf: kernel.o enter_kernel.o
+kernel.elf: boot/enter_kernel.o ${OBJFILES}
 	i686-elf-ld -o $@ -Ttext=0x1000 $^
-
-os.img: bootsector.bin kernel.bin
-	cat $^ > $@
 
 run: os.img
 	qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw
@@ -24,5 +24,17 @@ run: os.img
 debug: os.img kernel.elf
 	qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors
 
+%.o: %.c
+	${CC} ${CFLAGS} -ffreestanding -c $^ -o $@
+
+%.o: %.asm
+	nasm -f elf $< -o $@
+
+%.bin: %.asm
+	nasm -f bin $< -o $@
+
 clean:
-	rm *.bin *.o *.elf
+	rm -f *.bin *.o *.elf *.img
+	rm -f boot/*.o boot/*.bin
+	rm -f kernel/*.o
+	rm -f drivers/*.o
