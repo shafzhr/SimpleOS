@@ -14,15 +14,27 @@ uint16_t get_cursor_pos(void);
 uint16_t calc_ch_attr(char, uint8_t);
 void set_cursor_pos(uint16_t);
 int calc_row(uint16_t);
+void put_char_pos(char, int, int, uint8_t);
 
 
-// Public
+/**************************************
+ * Public                             *
+ *************************************/
 
+/**
+ * @brief Initialize cursor position to 0
+ */
 void init_screen(void)
 {
     set_cursor_pos(0);
 }
 
+/**
+ * @brief Prints a massage at the cursor's position
+ * 
+ * @param msg massage to print
+ * @param attribute VGA memory attribute
+ */
 void kprint(char* msg, uint8_t attribute)
 {
     kprint_pos(msg, -1, -1, attribute);
@@ -45,7 +57,7 @@ void clear_screen(void)
 }
 
 /**
- * @brief prints a char array to a given position.
+ * @brief Prints a char array to a given position.
  *        If the given position is negative the position
  *        would be the cursor's position.
  *        For more info: https://en.wikipedia.org/wiki/VGA_text_mode
@@ -68,6 +80,10 @@ void kprint_pos(char* msg, int x, int y, uint8_t attribute)
     }
     
 }
+
+/**************************************
+ * Private                            *
+ *************************************/
 
 /**
  * @brief puts a char in the screen in a given position.
@@ -113,10 +129,6 @@ void put_char_pos(char ch, int x, int y, uint8_t attribute)
     set_cursor_pos(offset);
 }
 
-
-
-
-// Private
 
 /**
  * @brief get current screen's cursor position
