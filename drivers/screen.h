@@ -12,7 +12,7 @@
 #define CURSOR_DATA_PORT 0x3D5
 
 #define VGA_COLOR_WHITE_BLACK 0x0F
-#define VGA_COLOR_WHITE_RED 0xF4
+#define VGA_COLOR_WHITE_RED 0x4F
 
 void init_screen(void);
 void clear_screen(void);

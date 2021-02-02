@@ -101,7 +101,7 @@ void put_char_pos(char ch, int x, int y, uint8_t attribute)
     uint16_t* video_mem = (uint16_t*)VIEDO_MEM;
     if (x >= VGA_SCREEN_WIDTH || y >= VGA_SCREEN_HEIGHT)
     {
-        /* print error */
+        kprint("E: Position out of range", VGA_COLOR_WHITE_RED); // TODO: Add the wrong range itself after "itoa" is implemented
         return;
     }
     uint16_t offset = (validate_pos(x, y)) ? calc_offset(x, y) : get_cursor_pos();
