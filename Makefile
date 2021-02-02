@@ -1,5 +1,5 @@
-SRCFILES = $(wildcard kernel/*.c drivers/*.c)
-HDRFILES = $(wildcard kernel/*.h drivers/*.h)
+SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c)
+HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h)
 
 OBJFILES = ${SRCFILES:.c=.o}
 

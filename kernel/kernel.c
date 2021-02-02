@@ -12,5 +12,6 @@ void kernel_main()
     kprint("Best OS!", VGA_COLOR_WHITE_BLACK);
     put_char('\n', VGA_COLOR_WHITE_BLACK);
     put_char('A', VGA_COLOR_WHITE_BLACK);
+    put_char('\n', VGA_COLOR_WHITE_BLACK);
 
 }

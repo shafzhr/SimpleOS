@@ -4,6 +4,7 @@
  */
 #include "screen.h"
 #include "ports.h"
+#include "../utils/string.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -123,7 +124,15 @@ void put_char_pos(char ch, int x, int y, uint8_t attribute)
     }
     if (offset >= VGA_SCREEN_HEIGHT * VGA_SCREEN_WIDTH)
     {
-        /* scroll */
+        memcpy(video_mem, video_mem + VGA_SCREEN_WIDTH, (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH * 2);
+
+        uint16_t* last_line = video_mem + (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH;
+        for (size_t i = 0; i < VGA_SCREEN_WIDTH; i++)
+        {
+            last_line[i] = calc_ch_attr(' ', VGA_COLOR_WHITE_BLACK);   
+        }
+        
+        offset = (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH;
     }
 
     set_cursor_pos(offset);
