@@ -1,0 +1,1 @@
+i686-elf-gdb -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
