@@ -36,7 +36,7 @@ load_kernel:
     push dx ; Drive number
     push 0x0000 ; Destination segment to load to
     push KERNEL_OFFSET ; Destination offset to load to
-    push 16 ; Number of sectors
+    push 30 ; Number of sectors
     call load_sectors
     ret
 
