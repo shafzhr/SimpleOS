@@ -38,3 +38,4 @@ clean:
 	rm -f boot/*.o boot/*.bin
 	rm -f kernel/*.o
 	rm -f drivers/*.o
+	rm -f utils/*.o
