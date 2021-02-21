@@ -1,6 +1,7 @@
 #include "isr.h"
 #include "idt.h"
 #include "../drivers/screen.h"
+#include "../utils/utils.h"
 #include <stdint.h>
 
 
@@ -90,6 +91,10 @@ void isr_handler(registers_t regs)
 {
     char int_number[4];
     kprint("Recieved interrupt #", VGA_COLOR_WHITE_BLACK);
-    // itoa();
 
+    kprint(itoa(regs.interrupt_n, int_number, 10), VGA_COLOR_WHITE_BLACK);
+    put_char('\n', VGA_COLOR_WHITE_BLACK);
+    
+    kprint(exception_messages[regs.interrupt_n], VGA_COLOR_WHITE_BLACK);
+    put_char('\n', VGA_COLOR_WHITE_BLACK);
 }

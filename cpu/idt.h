@@ -18,11 +18,11 @@ typedef struct
 typedef struct
 {
     uint16_t limit;
-    uint8_t base;
+    uint32_t base;
 } __attribute__((packed)) idt_register_t;
 
-IDTDescr idt[IDT_LENGTH];
-idt_register_t idt_register;
+extern IDTDescr idt[IDT_LENGTH];
+extern idt_register_t idt_register;
 
 void set_idt_gate(int n, uint32_t handler, uint8_t type_attr);
 void set_idt();

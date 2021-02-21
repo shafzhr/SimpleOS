@@ -39,7 +39,7 @@ extern void isr31();
 typedef struct
 {
     uint32_t ds; // pushed by "mov ax, ds push eax"
-    uint32_t edi, esi, ebp, ebx, edx, ecx, eax; // popa
+    uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // popa
     uint32_t interrupt_n, err_code; // interrupt number and error code
     uint32_t eip, cs, eflags, useresp, ss; // automatically pushed by the processor
 

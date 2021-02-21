@@ -1,19 +1,15 @@
 #include "../drivers/screen.h"
 #include "../utils/utils.h"
+#include "../cpu/isr.h"
+#include "../cpu/idt.h"
 
 void kernel_main()
 {
-    char number[10]; 
+    isr_install();
 
     init_screen();
-
     clear_screen();
 
-    put_char('A', VGA_COLOR_WHITE_BLACK);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
-    kprint("Best OS!", VGA_COLOR_WHITE_BLACK);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
-    kprint(itoa(123, number, 10), VGA_COLOR_WHITE_BLACK);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
-
+    asm volatile("int 2");
+    asm volatile("int 3");
 }

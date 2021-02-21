@@ -1,7 +1,7 @@
-SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c)
-HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h)
+SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c cpu/*.c)
+HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h)
 
-OBJFILES = ${SRCFILES:.c=.o}
+OBJFILES = ${SRCFILES:.c=.o cpu/interrupt.o}
 
 WARNINGS = -Wall
 CFLAGS = -g -masm=intel ${WARNINGS}
@@ -39,3 +39,4 @@ clean:
 	rm -f kernel/*.o
 	rm -f drivers/*.o
 	rm -f utils/*.o
+	rm -f cpu/*.o
