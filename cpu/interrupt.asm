@@ -23,6 +23,7 @@
 
 
 [extern isr_handler]
+[extern irq_handler]
 
 isr_common_stub:
     pusha
@@ -51,7 +52,31 @@ isr_common_stub:
     iret 
 
 irq_common_stub:
-    iret
+    pusha
+
+    mov ax, ds ; save ds val
+    push eax ; push ds val for later
+    mov ax, 0x10 ; kernel data segement descriptor
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    ; Handle interrupt
+    cld ; suggested by osdev wiki
+    call irq_handler
+
+    pop ebx
+    mov ds, bx ; restore segments
+    mov es, bx
+    mov fs, bx
+    mov gs, bx ; ^ ^ ^
+
+    popa
+    add esp, 8 ; 2 32-bit arguments - error code and isr number
+    ; sti restored by isr
+    iret 
+
 
 global isr0
 global isr1
