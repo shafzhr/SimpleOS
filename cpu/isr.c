@@ -142,7 +142,15 @@ void isr_handler(registers_t regs)
 
 void irq_handler(registers_t regs)
 {
-
+    int int_num = regs.interrupt_n;
+    if (handlers[int_num] != 0)
+    {
+        isr_handler_t handler = handlers[int_num];
+        handler(&regs);
+        return;
+    }
+    PIC_sendEOI(regs.interrupt_n - 0x20);       // subtract 0x20 - irqs offset    
+    
 }
 
 void PIC_remap(int offset1, int offset2)
@@ -166,4 +174,12 @@ void PIC_remap(int offset1, int offset2)
  
 	outb(PIC1_DATA, a1);   // restore saved masks.
 	outb(PIC2_DATA, a2);
+}
+
+void PIC_sendEOI(unsigned char irq)
+{
+	if(irq >= 8)
+		outb(PIC2_COMMAND,PIC_EOI);
+ 
+	outb(PIC1_COMMAND,PIC_EOI);
 }
