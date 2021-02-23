@@ -3,8 +3,8 @@ HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h)
 
 OBJFILES = ${SRCFILES:.c=.o cpu/interrupt.o}
 
-WARNINGS = -Wall
-CFLAGS = -g -masm=intel ${WARNINGS}
+WARNINGS = -Wall -Wextra
+CFLAGS = -g -ffreestanding -masm=intel ${WARNINGS} -m32 -nostartfiles
 
 CC = i686-elf-gcc
 
@@ -25,7 +25,7 @@ debug: os.img kernel.elf
 	qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors
 
 %.o: %.c
-	${CC} ${CFLAGS} -ffreestanding -c $^ -o $@
+	${CC} ${CFLAGS} -c $^ -o $@
 
 %.o: %.asm
 	nasm -f elf $< -o $@

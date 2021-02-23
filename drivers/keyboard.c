@@ -5,6 +5,7 @@
 #include "../utils/utils.h"
 #include <stdint.h>
 
+#define UNUSED(x) (void)(x)
 
 static void keyboard_handler(registers_t* regs);
 static void handle_scancode(uint8_t scancode);
@@ -17,6 +18,7 @@ void init_keyboard(void)
 
 static void keyboard_handler(registers_t* regs)
 {
+    UNUSED(regs);
     uint8_t scancode = inb(0x60);
     handle_scancode(scancode);
     
