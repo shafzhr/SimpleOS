@@ -3,13 +3,13 @@
 #include "../cpu/isr.h"
 #include "../cpu/idt.h"
 
-void kernel_main()
+
+void kmain()
 {
     isr_install();
 
     init_screen();
     clear_screen();
 
-    asm volatile("int 2");
-    asm volatile("int 3");
+    int x = 5 / 0;
 }
