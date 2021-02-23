@@ -6,6 +6,9 @@
 #include <stdint.h>
 
 
+void PIC_remap(int offset1, int offset2);
+void PIC_sendEOI(unsigned char irq);
+
 /**
  * @brief installs the ISRs.
  * note that 0x8F attribute is for traps and 0x8E is for interrupts (hardware)
@@ -67,6 +70,7 @@ void isr_install()
     set_idt_gate(0x2F, (uint32_t)irq15, 0x8E);
 
     set_idt();
+    asm volatile("sti");
 }
 
 static const char* exception_messages[] = {
@@ -126,12 +130,12 @@ void isr_handler(registers_t regs)
         return;
     }
     
-    kprint("Recieved interrupt #", VGA_COLOR_WHITE_BLACK);
+    kprint("Recieved interrupt #");
 
-    kprint(itoa(int_num, int_number_str, 10), VGA_COLOR_WHITE_BLACK);
+    kprint(itoa(int_num, int_number_str, 10));
     put_char('\n', VGA_COLOR_WHITE_BLACK);
     
-    kprint(exception_messages[int_num], VGA_COLOR_WHITE_BLACK);
+    kprint(exception_messages[int_num]);
     put_char('\n', VGA_COLOR_WHITE_BLACK);
     while (1)
     {
@@ -147,10 +151,8 @@ void irq_handler(registers_t regs)
     {
         isr_handler_t handler = handlers[int_num];
         handler(&regs);
-        return;
     }
-    PIC_sendEOI(regs.interrupt_n - 0x20);       // subtract 0x20 - irqs offset    
-    
+    PIC_sendEOI(regs.interrupt_n - 0x20);       // subtract 0x20 - irqs offset       
 }
 
 void PIC_remap(int offset1, int offset2)

@@ -15,6 +15,7 @@ uint16_t get_cursor_pos(void);
 uint16_t calc_ch_attr(const char, uint8_t);
 void set_cursor_pos(uint16_t);
 int calc_row(uint16_t);
+int calc_column(uint16_t);
 void put_char_pos(const char, int, int, uint8_t);
 
 
@@ -32,13 +33,12 @@ void init_screen(void)
 
 /**
  * @brief Prints a massage at the cursor's position
- * 
+ *        Color - white on black
  * @param msg massage to print
- * @param attribute VGA memory attribute
  */
-void kprint(const char* msg, uint8_t attribute)
+void kprint(const char* msg)
 {
-    kprint_pos(msg, -1, -1, attribute);
+    kprint_pos(msg, -1, -1, VGA_COLOR_WHITE_BLACK);
 }
 
 void put_char(const char ch, uint8_t attribute)
@@ -82,6 +82,14 @@ void kprint_pos(const char* msg, int x, int y, uint8_t attribute)
     
 }
 
+void kprint_backspace(void)
+{
+    uint16_t offset = get_cursor_pos() - 1;
+    int row = calc_row(offset);
+    int col = calc_column(offset);
+    put_char_pos(0x8, col, row, VGA_COLOR_WHITE_BLACK);
+}
+
 /**************************************
  * Private                            *
  *************************************/
@@ -102,7 +110,7 @@ void put_char_pos(const char ch, int x, int y, uint8_t attribute)
     uint16_t* video_mem = (uint16_t*)VIEDO_MEM;
     if (x >= VGA_SCREEN_WIDTH || y >= VGA_SCREEN_HEIGHT)
     {
-        kprint("E: Position out of range", VGA_COLOR_WHITE_RED); // TODO: Add the wrong range itself after "itoa" is implemented
+        kprint("E: Position out of range"); // TODO: Add the wrong range itself after "itoa" is implemented
         return;
     }
     uint16_t offset = (validate_pos(x, y)) ? calc_offset(x, y) : get_cursor_pos();
@@ -176,6 +184,12 @@ int calc_row(uint16_t offset)
 {
     return offset / VGA_SCREEN_WIDTH;
 }
+
+int calc_column(uint16_t offset)
+{
+    return offset % VGA_SCREEN_WIDTH;
+}
+
 
 bool validate_pos(int x, int y)
 {
