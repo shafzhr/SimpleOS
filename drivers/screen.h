@@ -12,14 +12,13 @@
 #define CURSOR_DATA_PORT 0x3D5
 
 #define VGA_COLOR_WHITE_BLACK 0x0F
-#define VGA_COLOR_WHITE_RED 0xF4
+#define VGA_COLOR_WHITE_RED 0x4F
 
 void init_screen(void);
 void clear_screen(void);
-void put_char_pos(char, int, int, uint8_t);
-void put_char(char, uint8_t);
-void kprint_pos(char*, int, int, uint8_t);
-void kprint(char*, uint8_t);
-
+void put_char(const char, uint8_t);
+void kprint_pos(const char*, int, int, uint8_t);
+void kprint(const char*);
+void kprint_backspace(void);
 
 #endif

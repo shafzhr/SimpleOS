@@ -1,16 +1,18 @@
 #include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
+#include "../utils/utils.h"
+#include "../cpu/isr.h"
+#include "../cpu/idt.h"
 
 
-void kernel_main()
+void kmain()
 {
+    isr_install();
+
     init_screen();
-
+    init_keyboard();    
     clear_screen();
-
-    put_char('A', VGA_COLOR_WHITE_BLACK);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
-    kprint("Best OS!", VGA_COLOR_WHITE_BLACK);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
-    put_char('A', VGA_COLOR_WHITE_BLACK);
+    
+    kprint("Hello\n");
 
 }

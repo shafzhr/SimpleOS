@@ -4,6 +4,7 @@
  */
 #include "screen.h"
 #include "ports.h"
+#include "../utils/string.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -11,24 +12,36 @@
 bool validate_pos(int, int);
 uint16_t calc_offset(int, int);
 uint16_t get_cursor_pos(void);
-uint16_t calc_ch_attr(char, uint8_t);
+uint16_t calc_ch_attr(const char, uint8_t);
 void set_cursor_pos(uint16_t);
 int calc_row(uint16_t);
+int calc_column(uint16_t);
+void put_char_pos(const char, int, int, uint8_t);
 
 
-// Public
+/**************************************
+ * Public                             *
+ *************************************/
 
+/**
+ * @brief Initialize cursor position to 0
+ */
 void init_screen(void)
 {
     set_cursor_pos(0);
 }
 
-void kprint(char* msg, uint8_t attribute)
+/**
+ * @brief Prints a massage at the cursor's position
+ *        Color - white on black
+ * @param msg massage to print
+ */
+void kprint(const char* msg)
 {
-    kprint_pos(msg, -1, -1, attribute);
+    kprint_pos(msg, -1, -1, VGA_COLOR_WHITE_BLACK);
 }
 
-void put_char(char ch, uint8_t attribute)
+void put_char(const char ch, uint8_t attribute)
 {
     put_char_pos(ch, -1, -1, attribute);
 }
@@ -45,7 +58,7 @@ void clear_screen(void)
 }
 
 /**
- * @brief prints a char array to a given position.
+ * @brief Prints a char array to a given position.
  *        If the given position is negative the position
  *        would be the cursor's position.
  *        For more info: https://en.wikipedia.org/wiki/VGA_text_mode
@@ -55,7 +68,7 @@ void clear_screen(void)
  * @param y starting row
  * @param attribute attribute of the video memory bytes
  */
-void kprint_pos(char* msg, int x, int y, uint8_t attribute)
+void kprint_pos(const char* msg, int x, int y, uint8_t attribute)
 {
     if (validate_pos(x, y))
     {
@@ -69,6 +82,18 @@ void kprint_pos(char* msg, int x, int y, uint8_t attribute)
     
 }
 
+void kprint_backspace(void)
+{
+    uint16_t offset = get_cursor_pos() - 1;
+    int row = calc_row(offset);
+    int col = calc_column(offset);
+    put_char_pos(0x8, col, row, VGA_COLOR_WHITE_BLACK);
+}
+
+/**************************************
+ * Private                            *
+ *************************************/
+
 /**
  * @brief puts a char in the screen in a given position.
  *        If the given position is negative the position
@@ -80,12 +105,12 @@ void kprint_pos(char* msg, int x, int y, uint8_t attribute)
  * @param y row
  * @param attribute character's attribute
  */
-void put_char_pos(char ch, int x, int y, uint8_t attribute)
+void put_char_pos(const char ch, int x, int y, uint8_t attribute)
 {
     uint16_t* video_mem = (uint16_t*)VIEDO_MEM;
     if (x >= VGA_SCREEN_WIDTH || y >= VGA_SCREEN_HEIGHT)
     {
-        /* print error */
+        kprint("E: Position out of range"); // TODO: Add the wrong range itself after "itoa" is implemented
         return;
     }
     uint16_t offset = (validate_pos(x, y)) ? calc_offset(x, y) : get_cursor_pos();
@@ -107,16 +132,20 @@ void put_char_pos(char ch, int x, int y, uint8_t attribute)
     }
     if (offset >= VGA_SCREEN_HEIGHT * VGA_SCREEN_WIDTH)
     {
-        /* scroll */
+        memcpy(video_mem, video_mem + VGA_SCREEN_WIDTH, (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH * 2);
+
+        uint16_t* last_line = video_mem + (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH;
+        for (size_t i = 0; i < VGA_SCREEN_WIDTH; i++)
+        {
+            last_line[i] = calc_ch_attr(' ', VGA_COLOR_WHITE_BLACK);   
+        }
+        
+        offset = (VGA_SCREEN_HEIGHT - 1) * VGA_SCREEN_WIDTH;
     }
 
     set_cursor_pos(offset);
 }
 
-
-
-
-// Private
 
 /**
  * @brief get current screen's cursor position
@@ -126,10 +155,10 @@ void put_char_pos(char ch, int x, int y, uint8_t attribute)
 uint16_t get_cursor_pos(void)
 {
     uint16_t pos = 0;
-    port_out(CURSOR_CMD_PORT, 0xF);
-    pos |= port_in(CURSOR_DATA_PORT);
-    port_out(CURSOR_CMD_PORT, 0xE);
-    pos |= ((uint16_t)port_in(CURSOR_DATA_PORT)) << 8;
+    outb(CURSOR_CMD_PORT, 0xF);
+    pos |= inb(CURSOR_DATA_PORT);
+    outb(CURSOR_CMD_PORT, 0xE);
+    pos |= ((uint16_t)inb(CURSOR_DATA_PORT)) << 8;
     return pos;
 }
 
@@ -140,10 +169,10 @@ uint16_t get_cursor_pos(void)
  */
 void set_cursor_pos(uint16_t offset)
 {
-    port_out(CURSOR_CMD_PORT, 0xF);
-    port_out(CURSOR_DATA_PORT, (uint8_t) (offset & 0xFF));
-    port_out(CURSOR_CMD_PORT, 0xE);
-    port_out(CURSOR_DATA_PORT, (uint8_t) ((offset >> 8) & 0xFF));
+    outb(CURSOR_CMD_PORT, 0xF);
+    outb(CURSOR_DATA_PORT, (uint8_t) (offset & 0xFF));
+    outb(CURSOR_CMD_PORT, 0xE);
+    outb(CURSOR_DATA_PORT, (uint8_t) ((offset >> 8) & 0xFF));
 }
 
 uint16_t calc_offset(int x, int y)
@@ -156,6 +185,12 @@ int calc_row(uint16_t offset)
     return offset / VGA_SCREEN_WIDTH;
 }
 
+int calc_column(uint16_t offset)
+{
+    return offset % VGA_SCREEN_WIDTH;
+}
+
+
 bool validate_pos(int x, int y)
 {
     return (
@@ -164,7 +199,7 @@ bool validate_pos(int x, int y)
         );
 }
 
-uint16_t calc_ch_attr(char ch, uint8_t attr)
+uint16_t calc_ch_attr(const char ch, uint8_t attr)
 {
     return ((uint16_t)attr << 8) | ch;
 }
