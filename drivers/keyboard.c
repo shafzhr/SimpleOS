@@ -10,6 +10,7 @@
 static void keyboard_handler(registers_t* regs);
 static void handle_scancode(uint8_t scancode);
 
+static int caps_lock_state = 0;
 
 void init_keyboard(void)
 {
@@ -26,6 +27,7 @@ static void keyboard_handler(registers_t* regs)
 
 static void handle_scancode(uint8_t scancode)
 {
+    int caps_lock_offset = caps_lock_state * 0x20;  // 'A' == 'a' - 0x20 
     switch (scancode)
     {
     case 0x2:
@@ -67,91 +69,94 @@ static void handle_scancode(uint8_t scancode)
         break;
 
     case 0x10:
-        kprint("Q");
+        put_char('q' - caps_lock_offset);
         break;
     case 0x11:
-        kprint("W");
+        put_char('w' - caps_lock_offset);
         break;
     case 0x12:
-        kprint("E");
+        put_char('e' - caps_lock_offset);
         break;
     case 0x13:
-        kprint("R");
+        put_char('r' - caps_lock_offset);
         break;
     case 0x14:
-        kprint("T");
+        put_char('t' - caps_lock_offset);
         break;
     case 0x15:
-        kprint("Y");
+        put_char('y' - caps_lock_offset);
         break;
     case 0x16:
-        kprint("U");
+        put_char('u' - caps_lock_offset);
         break;
     case 0x17:
-        kprint("I");
+        put_char('i' - caps_lock_offset);
         break;
     case 0x18:
-        kprint("O");
+        put_char('o' - caps_lock_offset);
         break;
     case 0x19:
-        kprint("P");
+        put_char('p' - caps_lock_offset);
         break;
     case 0x1C:
         kprint("\n");
         break;
     case 0x1E:
-        kprint("A");
+        put_char('a' - caps_lock_offset);
         break;
     case 0x1F:
-        kprint("S");
+        put_char('s' - caps_lock_offset);
         break;
     case 0x20:
-        kprint("D");
+        put_char('d' - caps_lock_offset);
         break;
     case 0x21:
-        kprint("F");
+        put_char('f' - caps_lock_offset);
         break;
     case 0x22:
-        kprint("G");
+        put_char('g' - caps_lock_offset);
         break;
     case 0x23:
-        kprint("H");
+        put_char('h' - caps_lock_offset);
         break;
     case 0x24:
-        kprint("J");
+        put_char('j' - caps_lock_offset);
         break;
     case 0x25:
-        kprint("K");
+        put_char('k' - caps_lock_offset);
         break;
     case 0x26:
-        kprint("L");
+        put_char('l' - caps_lock_offset);
         break;
     case 0x2C:
-        kprint("Z");
+        put_char('z' - caps_lock_offset);
         break;
     case 0x2D:
-        kprint("X");
+        put_char('x' - caps_lock_offset);
         break;
     case 0x2E:
-        kprint("C");
+        put_char('c' - caps_lock_offset);
         break;
     case 0x2F:
-        kprint("V");
+        put_char('v' - caps_lock_offset);
         break;
     case 0x30:
-        kprint("B");
+        put_char('b' - caps_lock_offset);
         break;
     case 0x31:
-        kprint("N");
+        put_char('n' - caps_lock_offset);
         break;
     case 0x32:
-        kprint("M");
+        put_char('m' - caps_lock_offset);
         break;
 
     case 0x39:
         kprint(" ");
         break;    
-    
+    case 0x3A:          /* caps lock pressed */
+        caps_lock_state ^= 1; // toggle caps-lock state
+        break;
+        
     default:
         break;
     }
