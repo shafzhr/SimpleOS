@@ -11,6 +11,7 @@ static void keyboard_handler(registers_t* regs);
 static void handle_scancode(uint8_t scancode);
 
 static int caps_lock_state = 0;
+static int shift_state = 0;
 
 void init_keyboard(void)
 {
@@ -27,11 +28,11 @@ static void keyboard_handler(registers_t* regs)
 
 static void handle_scancode(uint8_t scancode)
 {
-    int caps_lock_offset = caps_lock_state * 0x20;  // 'A' == 'a' - 0x20 
+    int caps_lock_offset = (caps_lock_state | shift_state) * 0x20;  // 'A' == 'a' - 0x20
     switch (scancode)
     {
     case 0x2:
-        kprint("1");
+        put_char(shift_state ? '!':'1');
         break;
     case 0x3:
         kprint("2");
@@ -59,13 +60,6 @@ static void handle_scancode(uint8_t scancode)
         break;
     case 0xB:
         kprint("0");
-        break;
-
-    case 0xE:
-        kprint_backspace();
-        break;
-    case 0xF:
-        kprint("    ");
         break;
 
     case 0x10:
@@ -98,10 +92,7 @@ static void handle_scancode(uint8_t scancode)
     case 0x19:
         put_char('p' - caps_lock_offset);
         break;
-    case 0x1C:
-        kprint("\n");
-        break;
-    case 0x1E:
+    case 0x1E:        
         put_char('a' - caps_lock_offset);
         break;
     case 0x1F:
@@ -150,13 +141,31 @@ static void handle_scancode(uint8_t scancode)
         put_char('m' - caps_lock_offset);
         break;
 
+    case 0xE:
+        kprint_backspace();
+        break;
+    case 0xF:
+        kprint("    ");
+        break;
+    case 0x1C:
+        kprint("\n");
+        break;
     case 0x39:
         kprint(" ");
         break;    
-    case 0x3A:          /* caps lock pressed */
-        caps_lock_state ^= 1; // toggle caps-lock state
+
+    case 0x3A:                  /* caps lock pressed */
+        caps_lock_state ^= 1;   /* toggle caps-lock state */
         break;
-        
+    case 0x2A:                  /* left shift pressed */
+    case 0x36:                  /* right shift pressed */
+        shift_state |= 1;        
+        break;
+    case 0xAA:                  /* left shift released */
+    case 0xB6:                  /* right shift released */
+        shift_state &= 0;        
+        break;
+    
     default:
         break;
     }
