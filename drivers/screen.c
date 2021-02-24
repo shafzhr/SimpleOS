@@ -41,9 +41,9 @@ void kprint(const char* msg)
     kprint_pos(msg, -1, -1, VGA_COLOR_WHITE_BLACK);
 }
 
-void put_char(const char ch, uint8_t attribute)
+void put_char(const char ch)
 {
-    put_char_pos(ch, -1, -1, attribute);
+    put_char_pos(ch, -1, -1, VGA_COLOR_WHITE_BLACK);
 }
 
 void clear_screen(void)
@@ -77,7 +77,7 @@ void kprint_pos(const char* msg, int x, int y, uint8_t attribute)
     
     for (; *msg != 0; ++msg)
     {
-        put_char(*msg, attribute);
+        put_char_pos(*msg, -1, -1, attribute);
     }
     
 }
