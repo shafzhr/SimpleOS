@@ -58,3 +58,28 @@ void outw(uint16_t port, uint16_t data)
     __asm__("out %%dx, %%ax" : : "d"(port), "a"(data));
 }
 
+/**
+ * @brief Read a dword from a port
+ * 
+ * @param port Port number
+ * @return a read dword
+ */
+uint32_t inl(uint16_t port)
+{
+    unsigned char result;
+    __asm__("in %%eax, %%dx": "=a"(result) : "d"(port));
+    return result;
+
+}
+
+/**
+ * @brief Write a dword to a port
+ * 
+ * @param port Port number
+ * @param data A dword to write
+ */
+void outl(uint16_t port, uint32_t data)
+{
+
+    __asm__("out %%dx, %%eax" : : "d"(port), "a"(data));
+}
