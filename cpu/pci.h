@@ -10,6 +10,9 @@
 
 #define PCI_BAR0 0x10
 
+#define PCI_COMMAND 0x4
+#define PCI_INTERRUPT_LINE 0x3C
+
 typedef struct
 {
     uint32_t address;

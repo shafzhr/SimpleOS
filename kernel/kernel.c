@@ -5,6 +5,7 @@
 #include "../cpu/idt.h"
 #include "../cpu/pci.h"
 #include "../drivers/ports.h"
+#include "../drivers/rtl8139.h"
 
 void kmain()
 {
@@ -15,7 +16,9 @@ void kmain()
     clear_screen();
 
     kprint("Hello\n");
-    pciGetDevice(0x10ec, 0x8139);
-    kprint("Done\n");
 
+    rtl8139_init();
+
+    
+    kprint("Done\n");
 }
