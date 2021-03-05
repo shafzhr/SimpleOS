@@ -17,5 +17,9 @@ void set_idt()
 {
     idt_register.base = (uint32_t)&idt;
     idt_register.limit = IDT_LENGTH * sizeof(idt_register_t) - 1;
-    asm volatile("lidt [%0]": :"r"(&idt_register));
+    #ifdef ASMINTEL
+        asm volatile("lidt [%0]": :"r"(&idt_register));
+    #else
+        asm volatile("lidtl (%0)" : :"r"(&idt_register));
+    #endif
 }

@@ -133,10 +133,10 @@ void isr_handler(registers_t regs)
     kprint("Recieved interrupt #");
 
     kprint(itoa(int_num, int_number_str, 10));
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
+    put_char('\n');
     
     kprint(exception_messages[int_num]);
-    put_char('\n', VGA_COLOR_WHITE_BLACK);
+    put_char('\n');
     while (1)
     {
         asm("hlt");

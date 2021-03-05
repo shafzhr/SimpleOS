@@ -3,8 +3,11 @@ HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h)
 
 OBJFILES = ${SRCFILES:.c=.o cpu/interrupt.o}
 
-WARNINGS = -Wall
-CFLAGS = -g -masm=intel ${WARNINGS}
+WARNINGS = -Wall -Wextra
+
+# intel | att
+ASMCONF = att
+CFLAGS = -g -ffreestanding -masm=${ASMCONF} ${WARNINGS} -m32 -nostartfiles
 
 CC = i686-elf-gcc
 
@@ -19,13 +22,34 @@ kernel.elf: boot/enter_kernel.o ${OBJFILES}
 	i686-elf-ld -o $@ -Ttext=0x1000 $^
 
 run: os.img
-	qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw
+	sudo qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw \
+	-net nic,model=rtl8139
 
 debug: os.img kernel.elf
 	qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors
 
+grub_os.img: grub/boot.o ${OBJFILES}
+	${CC} -T grub/linker.ld -o $@ -ffreestanding -nostdlib $^
+
+grub_os.iso: grub_os.img
+	mkdir -p isodir/boot/grub
+	cp grub_os.img isodir/boot/$<
+	cp grub/grub.cfg isodir/boot/grub/grub.cfg
+	grub-mkrescue -o $@ isodir
+
+grub: grub_os.iso
+	qemu-system-i386 -cdrom $< \
+	-net nic,model=rtl8139
+
+grub/boot.o: grub/boot.asm
+	nasm -felf32 $^ -o $@
+
 %.o: %.c
-	${CC} ${CFLAGS} -ffreestanding -c $^ -o $@
+ifeq (${ASMCONF}, intel)
+	${CC} ${CFLAGS} -c $^ -o $@ -D"ASMINTEL"
+else
+	${CC} ${CFLAGS} -c $^ -o $@
+endif
 
 %.o: %.asm
 	nasm -f elf $< -o $@
@@ -34,9 +58,11 @@ debug: os.img kernel.elf
 	nasm -f bin $< -o $@
 
 clean:
-	rm -f *.bin *.o *.elf *.img
+	rm -f *.bin *.o *.elf *.img *.iso
 	rm -f boot/*.o boot/*.bin
 	rm -f kernel/*.o
 	rm -f drivers/*.o
 	rm -f utils/*.o
 	rm -f cpu/*.o
+	rm -f grub/*.o
+	rm -rf isodir

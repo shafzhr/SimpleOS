@@ -16,7 +16,7 @@
 
 void init_screen(void);
 void clear_screen(void);
-void put_char(const char, uint8_t);
+void put_char(const char);
 void kprint_pos(const char*, int, int, uint8_t);
 void kprint(const char*);
 void kprint_backspace(void);
