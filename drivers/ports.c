@@ -15,8 +15,14 @@
  */
 uint8_t inb(uint16_t port)
 {
-    unsigned char result;
-    __asm__("in %%al, %%dx": "=a"(result) : "d"(port));
+    uint8_t result = 0;
+    #ifdef ASMINTEL
+        #pragma message "using INTEL"
+        asm volatile("in %0, %1": "=a"(result) : "Nd"(port));
+    #else
+        #pragma message "using ATT"
+        asm volatile("inb %1, %0" : "=a"(result) : "Nd"(port));
+    #endif
     return result;
 }
 
@@ -28,8 +34,11 @@ uint8_t inb(uint16_t port)
  */
 void outb(uint16_t port, uint8_t data)
 {
-
-    __asm__("out %%dx, %%al" : : "d"(port), "a"(data));
+    #ifdef ASMINTEL
+        asm volatile("out %%dx, %%al" : : "d"(port), "a"(data));
+    #else
+        asm volatile("outb %0, %1" : : "a"(data), "Nd"(port));
+    #endif
 }
 
 /**
@@ -40,8 +49,12 @@ void outb(uint16_t port, uint8_t data)
  */
 uint16_t inw(uint16_t port)
 {
-    unsigned char result;
-    __asm__("in %%ax, %%dx": "=a"(result) : "d"(port));
+    uint16_t result = 0;
+    #ifdef ASMINTEL
+        asm volatile("in %%ax, %%dx": "=a"(result) : "d"(port));
+    #else
+        asm volatile("inw %1, %0" : "=a"(result) : "Nd"(port));
+    #endif
     return result;
 
 }
@@ -54,8 +67,11 @@ uint16_t inw(uint16_t port)
  */
 void outw(uint16_t port, uint16_t data)
 {
-
-    __asm__("out %%dx, %%ax" : : "d"(port), "a"(data));
+    #ifdef ASMINTEL
+        asm volatile("out %%dx, %%ax" : : "d"(port), "a"(data));
+    #else
+        asm volatile("outw %0, %1" : : "a"(data), "Nd"(port));
+    #endif
 }
 
 /**
@@ -66,8 +82,13 @@ void outw(uint16_t port, uint16_t data)
  */
 uint32_t inl(uint16_t port)
 {
-    unsigned char result;
-    __asm__("in %%eax, %%dx": "=a"(result) : "d"(port));
+    uint32_t result = 0;
+    #ifdef ASMINTEL
+        asm volatile("in %0, %1": "=a"(result) : "Nd"(port));
+        // asm volatile("in %%eax, %%dx": "=a"(result) : "d"(port));
+    #else
+        asm volatile("inl %1, %0" : "=a"(result) : "Nd"(port));
+    #endif
     return result;
 
 }
@@ -80,6 +101,10 @@ uint32_t inl(uint16_t port)
  */
 void outl(uint16_t port, uint32_t data)
 {
-
-    __asm__("out %%dx, %%eax" : : "d"(port), "a"(data));
+    #ifdef ASMINTEL
+        asm volatile("out %1, %0" : : "a"(data), "Nd"(port));
+        // asm volatile("out %%dx, %%eax" : : "d"(port), "a"(data));
+    #else
+        asm volatile("outl %0, %1" : : "a"(data), "Nd"(port));
+    #endif
 }
