@@ -23,7 +23,11 @@ kernel.elf: boot/enter_kernel.o ${OBJFILES}
 
 run: os.img
 	sudo qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw \
-	-net nic,model=rtl8139
+	-netdev tap,id=mynet0,ifname=tap0,script=no,downscript=no \
+	-device rtl8139,netdev=mynet0,mac=52:55:00:d1:55:01 \
+	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic.pcap
+	# -net nic,model=rtl8139
+	# https://gist.github.com/extremecoders-re/e8fd8a67a515fee0c873dcafc81d811c
 
 debug: os.img kernel.elf
 	qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors

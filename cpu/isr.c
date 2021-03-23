@@ -147,6 +147,7 @@ void isr_handler(registers_t regs)
 void irq_handler(registers_t regs)
 {
     int int_num = regs.interrupt_n;
+
     if (handlers[int_num] != 0)
     {
         isr_handler_t handler = handlers[int_num];
@@ -157,11 +158,6 @@ void irq_handler(registers_t regs)
 
 void PIC_remap(int offset1, int offset2)
 {
-	unsigned char a1, a2;
- 
-	a1 = inb(PIC1_DATA);                        // save masks
-	a2 = inb(PIC2_DATA);
- 
 	outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);  // starts the initialization sequence (in cascade mode)
 	outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
 
@@ -174,8 +170,8 @@ void PIC_remap(int offset1, int offset2)
 	outb(PIC1_DATA, ICW4_8086);
 	outb(PIC2_DATA, ICW4_8086);
  
-	outb(PIC1_DATA, a1);   // restore saved masks.
-	outb(PIC2_DATA, a2);
+	outb(PIC1_DATA, 0x00);   // mask all
+	outb(PIC2_DATA, 0x00);
 }
 
 void PIC_sendEOI(unsigned char irq)
