@@ -32,6 +32,6 @@ typedef struct
 
 
 bool rtl8139_init();
-void rtl8139_send_packet(void* packet, uint32_t size);
+void rtl8139_send_packet(void* packet, uint32_t size, uint8_t device_index);
 
 #endif

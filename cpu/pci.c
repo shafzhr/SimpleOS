@@ -58,7 +58,7 @@ uint16_t pciGetDeviceId(uint32_t address)
  * @param device_id device id
  * @return pci_device_t
  */
-pci_device_t pciGetDevice(uint16_t vendor_id, uint16_t device_id)
+pci_device_t pciGetDevice(uint16_t vendor_id, uint16_t device_id, uint8_t index)
 {
     for (int bus = 0; bus < 256; ++bus)
     {
@@ -75,23 +75,28 @@ pci_device_t pciGetDevice(uint16_t vendor_id, uint16_t device_id)
                 uint16_t d_id = pciGetDeviceId(address);
                 if (vendor_id == v_id && device_id == d_id)
                 {
-                    char id_buffer[20];
-                    kprint("Found a PCI device: ");
-                    kprint(itoa(v_id, id_buffer, 16));
-                    kprint(" | ");
-                    kprint(itoa(d_id, id_buffer, 16));
-                    kprint("\n");
+                    if (index == 0)
+                    {
+                        char id_buffer[20];
+                        kprint("Found a PCI device: ");
+                        kprint(itoa(v_id, id_buffer, 16));
+                        kprint(" | ");
+                        kprint(itoa(d_id, id_buffer, 16));
+                        kprint(" | ");
+                        kprint(itoa(address, id_buffer, 16));
+                        kprint("\n");
 
-                    pci_device_t device = { 0 };
-                    device.address = address;
-                    device.vendor_id = vendor_id;
-                    device.device_id = device_id;
-                    device.bar0 = pciRead(address, PCI_BAR0);
-                    return device;
+                        pci_device_t device = { 0 };
+                        device.address = address;
+                        device.vendor_id = vendor_id;
+                        device.device_id = device_id;
+                        device.bar0 = pciRead(address, PCI_BAR0);
+                        return device;
+                    }
+                    --index;
                 }
             }
         }
     }
     return (pci_device_t){ 0 };
-    
 }

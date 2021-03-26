@@ -24,6 +24,6 @@ typedef struct
 
 uint32_t pciRead(uint32_t address, uint8_t offset);
 void pciWrite(uint32_t address, uint8_t offset, uint32_t data);
-pci_device_t pciGetDevice(uint16_t vendor_id, uint16_t device_id);
+pci_device_t pciGetDevice(uint16_t vendor_id, uint16_t device_id, uint8_t index);
 
 #endif
