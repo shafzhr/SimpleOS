@@ -1,5 +1,5 @@
-SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c cpu/*.c)
-HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h)
+SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c cpu/*.c net/*.c)
+HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h net/*.h)
 
 OBJFILES = ${SRCFILES:.c=.o cpu/interrupt.o}
 
@@ -23,10 +23,22 @@ kernel.elf: boot/enter_kernel.o ${OBJFILES}
 
 run: os.img
 	sudo qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw \
-	-net nic,model=rtl8139
+	-netdev tap,id=mynet0,ifname=tap0,script=no,downscript=no \
+	-device rtl8139,netdev=mynet0 \
+	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic1.pcap \
+	-netdev tap,id=mynet1,ifname=tap1,script=no,downscript=no \
+	-device rtl8139,netdev=mynet1 \
+	-object filter-dump,id=f2,netdev=mynet1,file=./log/traffic2.pcap \
+	# https://gist.github.com/extremecoders-re/e8fd8a67a515fee0c873dcafc81d811c
 
 debug: os.img kernel.elf
-	qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors
+	sudo qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors \
+	-netdev tap,id=mynet0,ifname=tap0,script=no,downscript=no \
+	-device rtl8139,netdev=mynet0 \
+	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic1.pcap \
+	-netdev tap,id=mynet1,ifname=tap1,script=no,downscript=no \
+	-device rtl8139,netdev=mynet1 \
+	-object filter-dump,id=f2,netdev=mynet1,file=./log/traffic2.pcap \
 
 grub_os.img: grub/boot.o ${OBJFILES}
 	${CC} -T grub/linker.ld -o $@ -ffreestanding -nostdlib $^
@@ -38,8 +50,10 @@ grub_os.iso: grub_os.img
 	grub-mkrescue -o $@ isodir
 
 grub: grub_os.iso
-	qemu-system-i386 -cdrom $< \
+	sudo qemu-system-i386 -cdrom $< \
+	-net nic,model=rtl8139 \
 	-net nic,model=rtl8139
+
 
 grub/boot.o: grub/boot.asm
 	nasm -felf32 $^ -o $@
@@ -64,5 +78,6 @@ clean:
 	rm -f drivers/*.o
 	rm -f utils/*.o
 	rm -f cpu/*.o
+	rm -f net/*.o
 	rm -f grub/*.o
 	rm -rf isodir

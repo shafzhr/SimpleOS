@@ -1,5 +1,6 @@
 #include "string.h"
 #include <stddef.h>
+#include <stdint.h>
 
 
 void chrswap(char* x, char* y)
@@ -27,6 +28,16 @@ void* memcpy(void* dst, void* src, size_t len)
         dp[i] = sp[i];
     }
     return dst;    
+}
+
+void* memset(void* dst, uint8_t value, size_t len)
+{
+    char* dp = dst;
+    for (size_t i = 0; i < len; ++i)
+    {
+        dp[i] = value;
+    }
+    return dst;
 }
 
 char* strrev(char* buffer)

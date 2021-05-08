@@ -5,7 +5,7 @@ KERNEL_OFFSET equ 0x1000
 start:
     mov [BOOT_DRIVE_NUMBER], dl
 
-    mov bp, 0x9000 ; https://en.wikibooks.org/wiki/X86_Assembly/Bootloaders
+    mov bp, 0xF000 ; https://en.wikibooks.org/wiki/X86_Assembly/Bootloaders
     mov sp, bp ; Expend the stack because it's placed only 512 beyond the first boot sector
 
     push ENTER_16BIT
@@ -36,7 +36,7 @@ load_kernel:
     push dx ; Drive number
     push 0x0000 ; Destination segment to load to
     push KERNEL_OFFSET ; Destination offset to load to
-    push 30 ; Number of sectors
+    push 45 ; Number of sectors
     call load_sectors
     ret
 
