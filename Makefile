@@ -1,5 +1,5 @@
-SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c cpu/*.c)
-HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h)
+SRCFILES = $(wildcard kernel/*.c drivers/*.c utils/*.c cpu/*.c net/*.c)
+HDRFILES = $(wildcard kernel/*.h drivers/*.h utils/*.h cpu/*.h net/*.h)
 
 OBJFILES = ${SRCFILES:.c=.o cpu/interrupt.o}
 
@@ -24,7 +24,7 @@ kernel.elf: boot/enter_kernel.o ${OBJFILES}
 run: os.img
 	sudo qemu-system-i386 -drive file=$<,index=0,if=floppy,format=raw \
 	-netdev tap,id=mynet0,ifname=tap0,script=no,downscript=no \
-	-device rtl8139,netdev=mynet0,mac=52:55:00:d1:55:01 \
+	-device rtl8139,netdev=mynet0 \
 	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic1.pcap \
 	-netdev tap,id=mynet1,ifname=tap1,script=no,downscript=no \
 	-device rtl8139,netdev=mynet1 \
@@ -34,10 +34,11 @@ run: os.img
 debug: os.img kernel.elf
 	sudo qemu-system-i386 -s -S -drive file=$<,index=0,if=floppy,format=raw -d guest_errors \
 	-netdev tap,id=mynet0,ifname=tap0,script=no,downscript=no \
-	-device rtl8139,netdev=mynet0,mac=52:55:00:d1:55:01 \
-	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic.pcap \
-	-net nic,model=rtl8139
-
+	-device rtl8139,netdev=mynet0 \
+	-object filter-dump,id=f1,netdev=mynet0,file=./log/traffic1.pcap \
+	-netdev tap,id=mynet1,ifname=tap1,script=no,downscript=no \
+	-device rtl8139,netdev=mynet1 \
+	-object filter-dump,id=f2,netdev=mynet1,file=./log/traffic2.pcap \
 
 grub_os.img: grub/boot.o ${OBJFILES}
 	${CC} -T grub/linker.ld -o $@ -ffreestanding -nostdlib $^
@@ -77,5 +78,6 @@ clean:
 	rm -f drivers/*.o
 	rm -f utils/*.o
 	rm -f cpu/*.o
+	rm -f net/*.o
 	rm -f grub/*.o
 	rm -rf isodir

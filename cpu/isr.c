@@ -150,6 +150,12 @@ void irq_handler(registers_t regs)
 
     if (handlers[int_num] != 0)
     {
+        // kprint("[ISR] recveived\n");
+        // uint8_t buf[10];
+        // kprint(itoa(int_num, buf, 16));
+        // kprint("\n");
+        // kprint(itoa(handlers[int_num], buf, 16));
+        // kprint("\n");
         isr_handler_t handler = handlers[int_num];
         handler(&regs);
     }

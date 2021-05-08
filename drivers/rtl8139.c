@@ -10,6 +10,9 @@
 #include "../utils/string.h"
 #include "../utils/utils.h"
 #include "../utils/mem.h"
+#include "../net/net.h"
+#include "../net/ipv4.h"
+#include "../net/ethernet.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -47,7 +50,6 @@ bool rtl8139_init()
 
 bool rtl8139_init_device(int device_index)
 {    
-    char addrbuf[10];
 
     kprint("[RTL8139] Initializing\n");
 
@@ -57,7 +59,7 @@ bool rtl8139_init_device(int device_index)
     {
         kprint("[RTL8139] Initialization failed\n");
         return false;
-    }    
+    }
     ioaddr[device_index] = device[device_index].bar0 & 0xFFFFFFFC;
     // PCI Bus Mastering
     uint32_t pci_command_register = pciRead(device[device_index].address, PCI_COMMAND);
@@ -85,9 +87,10 @@ bool rtl8139_init_device(int device_index)
     
     outb(ioaddr[device_index] + 0x37, 0x0C);                                    // enables receive and transmit
     
-    kprint("[RTL8139] Address -> ");
-    kprint(itoa(device[device_index].address, addrbuf, 16));
-    kprint("\n");
+    // char addrbuf[10];
+    // kprint("[RTL8139] Address -> ");
+    // kprint(itoa(device[device_index].address, addrbuf, 16));
+    // kprint("\n");
 
     uint8_t irq_num = (uint8_t)(pciRead(device[device_index].address, PCI_INTERRUPT_LINE) & 0xFF);
     isr_handler_t handler = handler_picker(device_index);
@@ -100,11 +103,11 @@ bool rtl8139_init_device(int device_index)
     
     kprint("[RTL8139] Registered at #");
     char irq_number_str[4];
-    kprint(itoa(irq_num+0x20, irq_number_str, 10));
+    kprint(itoa(irq_num+0x20, irq_number_str, 16));
     put_char('\n');
-    kprint("[RTL8139] rx_buffer -> ");
-    kprint(itoa((uint32_t)rx_buffer[device_index], addrbuf, 16));
-    put_char('\n');
+    // kprint("[RTL8139] rx_buffer -> ");
+    // kprint(itoa((uint32_t)rx_buffer[device_index], addrbuf, 16));
+    // put_char('\n');
     
 
     for (size_t i = 0; i < 6; ++i)
@@ -191,6 +194,7 @@ void rtl8139_send_packet(void* packet, uint32_t size, uint8_t device_index)
 
 static void rtl8139_receive_packet(uint8_t device_index)
 {
+    kprint("Landed receive\n");
     uint32_t index = rx_index[device_index];
     while ((inb(ioaddr[device_index] + RTL8139_COMMAND) & 0x1) == 0)  // 0 means that the buffer is empty
     {
@@ -198,7 +202,6 @@ static void rtl8139_receive_packet(uint8_t device_index)
         uint32_t read_ptr = (uint32_t)rx_buffer[device_index] + offset;
         rtl8139_header* rx_header_ptr =  (rtl8139_header*)read_ptr;
         
-
         if (rx_header_ptr->status & (
                                     RTL8139_RX_PACKET_HEADER_FAE  | /* Frame  Alignment  Error */
                                     RTL8139_RX_PACKET_HEADER_CRC  | /* CRC  Error */
@@ -211,19 +214,36 @@ static void rtl8139_receive_packet(uint8_t device_index)
         }
         else
         {
-            char hex_buf[3];
+            uint8_t transmit_buf[RTL8139_TX_SIZE];
             uint8_t* buf = (uint8_t*)(read_ptr + sizeof(rtl8139_header));
-            // TODO: Handle payload
-            if (*buf == mac_addr[0][0]) // TODO: make it use full comparison
+
+            ethernet_header_t eth_header = ethernet_read_header(buf);
+            buf += sizeof(ethernet_header_t);
+            if (swap_uint16(eth_header.type) == ETHERTYPE_IPV4)
             {
-                for (size_t i = 0; i < rx_header_ptr->size; ++i)
+                kprint("[Ethernet] Recieved a packet to transfer\n");
+                ipv4_header_t ipv4_header = ipv4_read_header(buf);
+                buf += sizeof(ipv4_header); // now buffer points to data/ip options/padding
+                if (ipv4_header.version == 4)
                 {
-                    uint8_t val = *(buf+i);
-                    kprint(itoa(val, hex_buf, 16));
-                    put_char(' ');
+                    kprint("[IPv4] Recieved a packet to transfer\n");
+                    uint8_t other_NIC = device_index ^ 1;
+                    memcpy(&eth_header.src, mac_addr[other_NIC], 6); // Source = other NIC
+                    memset(&eth_header.dst, 0xFF, 6); // Dest = broadcast
+                    ipv4_header.ttl = 0x50;
+                    
+                    // Copy data to transmit buffer
+                    uint8_t* tbuf_ptr = transmit_buf;
+                    memcpy(tbuf_ptr, &eth_header, sizeof(ethernet_header_t));
+                    tbuf_ptr += sizeof(ethernet_header_t);
+                    memcpy(tbuf_ptr, &ipv4_header, sizeof(ipv4_header_t));
+                    tbuf_ptr += sizeof(ipv4_header_t);
+                    uint16_t total_len = swap_uint16(ipv4_header.len);
+                    uint8_t ipv4_left_to_read = total_len - 0x20;   // 0x20 is the minimum header size (what we've already read until now)
+                    memcpy(tbuf_ptr, buf, ipv4_left_to_read);       // "options" ipv4 header field
+                    rtl8139_send_packet(transmit_buf, 0x14 + total_len, other_NIC);
                 }
-                put_char('\n');
-            }                        
+            }
         }
         index = (index + rx_header_ptr->size + sizeof(rtl8139_header) + 3) & 0xFFFFFFFC;
         outw(ioaddr[device_index] + RTL8139_RX_BUF_PTR, index - 0x10);
