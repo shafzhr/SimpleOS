@@ -190,6 +190,9 @@ void rtl8139_send_packet(void* packet, uint32_t size, uint8_t device_index)
     outl(ioaddr[device_index] + 0x10 + cnt * 4, size);
 
     tx_counter[device_index] = (cnt >= 3) ? 0 : cnt + 1;
+    kprint("Transmitted a packet - device #");
+    put_char(device_index + '0');
+    put_char('\n');
 }
 
 static void rtl8139_receive_packet(uint8_t device_index)
@@ -219,18 +222,26 @@ static void rtl8139_receive_packet(uint8_t device_index)
 
             ethernet_header_t eth_header = ethernet_read_header(buf);
             buf += sizeof(ethernet_header_t);
+            kprint("Checking ethernet type - device #");
+            put_char(device_index + '0');
+            put_char('\n');
+            kprint("Type - ");
+            int n[10];
+            kprint(itoa(swap_uint16(eth_header.type), n, 16));
+            put_char('\n');
             if (swap_uint16(eth_header.type) == ETHERTYPE_IPV4)
             {
                 kprint("[Ethernet] Recieved a packet to transfer\n");
                 ipv4_header_t ipv4_header = ipv4_read_header(buf);
                 buf += sizeof(ipv4_header); // now buffer points to data/ip options/padding
-                if (ipv4_header.version == 4)
+                if (ipv4_header.version == 4 && ipv4_header.ttl != 0)
                 {
                     kprint("[IPv4] Recieved a packet to transfer\n");
                     uint8_t other_NIC = device_index ^ 1;
+
                     memcpy(&eth_header.src, mac_addr[other_NIC], 6); // Source = other NIC
                     memset(&eth_header.dst, 0xFF, 6); // Dest = broadcast
-                    ipv4_header.ttl = 0x50;
+                    ipv4_header.ttl -= 0x1;
                     
                     // Copy data to transmit buffer
                     uint8_t* tbuf_ptr = transmit_buf;

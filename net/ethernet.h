@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define ETHERTYPE_IPV4 0x0800
+#define ARP 0x0806
 
 typedef struct
 {
